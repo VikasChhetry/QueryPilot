@@ -5,7 +5,14 @@ const { app } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const mysql = require('mysql2/promise');
-const { DB_CONFIG: DEFAULT_CONFIG } = require('./constants');
+
+const DEFAULT_CONFIG = {
+  host: 'localhost',
+  port: 3306,
+  user: '',
+  password: '',
+  database: ''
+};
 
 function getConfigPath() {
   const p = path.join(app.getPath('userData'), 'db.config.json');
