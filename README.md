@@ -17,11 +17,15 @@ To install QueryPilot, please download the latest installer from our [GitHub Rel
 
 1.**Download Ollama from: https://ollama.com/download**
     Install Ollama for Windows
+    
     Open Command Prompt / PowerShell
+    
     Run:
     **ollama pull llama3.1**
+    
     Make sure Ollama is running:
     **ollama serve**
+    
     or 
     **open the Ollama app**
     
