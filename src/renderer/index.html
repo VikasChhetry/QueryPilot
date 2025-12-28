@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QueryPilot – Talk to your database. Safely.</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="qpWelcome" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000;">
+    <div style="background:#ffffff;padding:24px;max-width:420px;width:90%;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+      <h2>Welcome to QueryPilot 👋</h2>
+      <p>Type your request in plain English.</p>
+      <p>Preview SQL before executing.</p>
+      <h3>Safety</h3>
+      <p>Your data never leaves your system.</p>
+      <p>All queries run locally.</p>
+      <button id="qpWelcomeClose" style="margin-top:16px;padding:8px 16px;">Get started</button>
+    </div>
+  </div>
+  <header>
+    <h1>QueryPilot</h1>
+    <p>Talk to your database. Safely.</p>
+    <p>Built by: Vikash Chhetry</p>
+  </header>
+  <main>
+    <section>
+      <h2>Connection</h2>
+      <div class="controls">
+          <div class="db-input-wrapper">
+            <input id="dbHost" type="text" placeholder="Host (e.g. 127.0.0.1)" class="db-input" />
+          </div>
+          <div class="db-input-wrapper">
+            <input id="dbPort" type="text" placeholder="Port (e.g. 3306)" class="db-input" />
+          </div>
+          <div class="db-input-wrapper">
+            <input id="dbUser" type="text" placeholder="User (e.g. root)" class="db-input" />
+          </div>
+          <div class="db-input-wrapper">
+            <input id="dbPassword" type="text" placeholder="Password" class="db-input" />
+          </div>
+          <div class="db-input-wrapper">
+            <input id="dbName" type="text" placeholder="Default DB (optional)" class="db-input" />
+          </div>
+        </div>
+        <div class="controls">
+        <button id="btnSaveConn">Save Connection</button>
+        <button id="btnTestConn" class="secondary">Test Connection</button>
+        <button id="btnLoadDbs" class="secondary">Load Databases</button>
+        <select id="dbList" class="db-select"></select>
+        <button id="btnUseDb" class="secondary">Use Selected DB</button>
+      </div>
+      <p id="connMsg"></p>
+    </section>
+
+    <section>
+      <h2>Natural Language</h2>
+      <textarea id="nlText" placeholder="e.g. create database sample_db, create table users with columns id int, name varchar(100); insert into users name=John, age=30; update users set age=31 where name='John'; delete from users where id=5; show tables"></textarea>
+      <div class="controls">
+        <button id="btnConvert">Convert to SQL</button>
+        <button id="btnVoice" class="secondary">Start Voice</button>
+      </div>
+      <div id="nlLoadingIndicator" class="loading-indicator">
+        <p>Generating SQL...</p>
+        <div class="spinner"></div>
+      </div>
+      <p id="nlHint" class="success"></p>
+    </section>
+
+    <section>
+      <h2>Examples</h2>
+      <div id="examples" class="controls">
+        <button class="secondary ex-nl" data-nl="show tables">Show tables</button>
+        <button class="secondary ex-nl" data-nl="show databases">Show databases</button>
+        <button class="secondary ex-nl" data-nl="get all from users">Get all from users</button>
+        <button class="secondary ex-nl" data-nl="count orders">Count orders</button>
+        <button class="secondary ex-nl" data-nl="show rows from users where age > 30">Users age > 30</button>
+        <button class="secondary ex-nl" data-nl="create database sample_db">Create database</button>
+        <button class="secondary ex-nl" data-nl="create table users with columns id int, name varchar(100)">Create users table</button>
+        <button class="secondary ex-nl" data-nl="insert into users name=Alice, age=28">Insert example</button>
+      </div>
+      <p class="success">Click an example; it will convert and run.</p>
+    </section>
+
+    <section>
+      <h2>SQL Preview</h2>
+      <textarea id="sqlPreview" class="sql-textarea"></textarea>
+      <div class="controls">
+        <button id="btnValidate">Validate</button>
+        <button id="btnExplain" class="secondary">Explain</button>
+        <button id="btnExecute">Execute</button>
+        <button id="btnUndo" class="secondary">Undo Last</button>
+        <button id="btnExport" class="secondary">Export SQL</button>
+      </div>
+      <div id="loadingIndicator" class="loading-indicator">
+        <p>Generating explanation...</p>
+        <div class="spinner"></div>
+      </div>
+      <p id="validationMsg"></p>
+    </section>
+
+    <section class="results-section">
+      <h2>Results</h2>
+      <div id="results"></div>
+      <p id="errorMsg" class="error"></p>
+    </section>
+
+    <section class="history-section">
+      <h2>History</h2>
+      <table>
+        <thead>
+          <tr><th>Select</th><th>Timestamp</th><th>SQL</th></tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+      <div class="controls">
+        <button id="btnDeleteSelected" class="secondary history-button">Delete Selected</button>
+        <button id="btnDeleteAll" class="secondary history-button">Delete All</button>
+        <button id="btnExportHistory" class="secondary history-button">Export Full History</button>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <h2>About QueryPilot</h2>
+      <p>QueryPilot is a local, AI-powered database assistant that allows users to interact with MySQL using natural language safely.</p>
+      <p>Hi, I’m Vikash Chhetry. I built QueryPilot to make it effortless to talk to MySQL in plain English. I use it myself for my own side projects and client work, and I’m improving it based on real-world usage.</p>
+      <p>Links:
+        <a href="https://github.com/VikasChhetry/QueryPilot" target="_blank" rel="noreferrer">GitHub</a> ·
+        <a href="https://www.linkedin.com/in/vikas-chhetry-57973b319/" target="_blank" rel="noreferrer">LinkedIn</a>
+      </p>
+      <p>Contact: <a href="mailto:pwebsite18@gmail.com">pwebsite18@gmail.com</a></p>
+      <p>Made with ❤️ by Vikash Chhetry</p>
+      <p>© 2025 – All rights reserved</p>
+    </section>
+  </main>
+
+  <!-- MVP: Using nodeIntegration to access ipcRenderer directly. Harden later. -->
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    const nlText = document.getElementById('nlText');
+    const btnConvert = document.getElementById('btnConvert');
+    const btnVoice = document.getElementById('btnVoice');
+    const nlLoadingIndicator = document.getElementById('nlLoadingIndicator');
+    const sqlPreview = document.getElementById('sqlPreview');
+    const btnValidate = document.getElementById('btnValidate');
+    const btnExecute = document.getElementById('btnExecute');
+    const btnUndo = document.getElementById('btnUndo');
+    const btnExport = document.getElementById('btnExport');
+    const btnExplain = document.getElementById('btnExplain');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const validationMsg = document.getElementById('validationMsg');
+    const resultsDiv = document.getElementById('results');
+    const errorMsg = document.getElementById('errorMsg');
+    const historyBody = document.getElementById('historyBody');
+    const btnExportHistory = document.getElementById('btnExportHistory');
+    const btnDeleteSelected = document.getElementById('btnDeleteSelected');
+    const btnDeleteAll = document.getElementById('btnDeleteAll');
+    const nlHint = document.getElementById('nlHint');
+    const qpWelcome = document.getElementById('qpWelcome');
+    const qpWelcomeClose = document.getElementById('qpWelcomeClose');
+
+    // Connection elements
+    const dbHost = document.getElementById('dbHost');
+    const dbPort = document.getElementById('dbPort');
+    const dbUser = document.getElementById('dbUser');
+    const dbPassword = document.getElementById('dbPassword');
+    const dbName = document.getElementById('dbName');
+    const btnSaveConn = document.getElementById('btnSaveConn');
+    const btnTestConn = document.getElementById('btnTestConn');
+    const btnLoadDbs = document.getElementById('btnLoadDbs');
+    const dbList = document.getElementById('dbList');
+    const btnUseDb = document.getElementById('btnUseDb');
+    const connMsg = document.getElementById('connMsg');
+
+    async function refreshHistory() {
+      const history = await ipcRenderer.invoke('nlqms:getHistory');
+      historyBody.innerHTML = '';
+      history.slice().reverse().forEach(h => {
+        const tr = document.createElement('tr');
+        const selTd = document.createElement('td');
+        const ts = document.createElement('td');
+        const sql = document.createElement('td');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.dataset.id = h.id || '';
+        selTd.appendChild(cb);
+        ts.textContent = h.timestamp;
+        sql.textContent = h.sql;
+        tr.appendChild(selTd);
+        tr.appendChild(ts);
+        tr.appendChild(sql);
+        historyBody.appendChild(tr);
+      });
+    }
+
+    btnConvert.addEventListener('click', async () => {
+      nlLoadingIndicator.style.display = 'block'; // Show loading indicator
+      nlHint.textContent = ''; // Clear previous messages
+      errorMsg.textContent = '';
+      validationMsg.textContent = '';
+
+      try {
+        const res = await ipcRenderer.invoke('nlqms:convert', nlText.value);
+        sqlPreview.value = res.sql || '(no SQL)';
+        nlHint.textContent = res.explanation || '';
+      } catch (err) {
+        errorMsg.textContent = `An unexpected error occurred: ${err.message}`;
+      } finally {
+        nlLoadingIndicator.style.display = 'none'; // Hide loading indicator
+      }
+    });
+
+    btnValidate.addEventListener('click', async () => {
+      const res = await ipcRenderer.invoke('nlqms:validate', sqlPreview.value);
+      validationMsg.textContent = res.message || '';
+    });
+
+    btnExplain.addEventListener('click', async () => {
+      const sql = sqlPreview.value.trim();
+      if (!sql) { validationMsg.textContent = 'No SQL to explain.'; return; }
+
+      loadingIndicator.style.display = 'block'; // Show loading indicator
+      validationMsg.textContent = ''; // Clear previous messages
+      resultsDiv.innerHTML = ''; // Clear previous results
+
+      try {
+        const res = await ipcRenderer.invoke('nlqms:explainSql', sql);
+        if (res.ok) {
+          resultsDiv.innerHTML = `<p>${res.explanation}</p>`;
+        } else {
+          validationMsg.textContent = res.error || 'Failed to explain query.';
+        }
+      } catch (err) {
+        validationMsg.textContent = `An unexpected error occurred: ${err.message}`;
+      } finally {
+        loadingIndicator.style.display = 'none'; // Hide loading indicator
+      }
+    });
+
+    async function runSql(sql) {
+      const trimmed = (sql || '').trim();
+      if (!trimmed) { errorMsg.textContent = 'No SQL to execute.'; return; }
+      const validation = await ipcRenderer.invoke('nlqms:validate', trimmed);
+      let confirmedFlag = false;
+      if (validation.requiresConfirmation) {
+        confirmedFlag = confirm('Destructive query detected. Proceed?');
+      }
+      const res = await ipcRenderer.invoke('nlqms:execute', trimmed, { confirmed: confirmedFlag });
+      if (!res.ok) {
+        errorMsg.textContent = res.error || 'Unknown error';
+        resultsDiv.innerHTML = '';
+        return;
+      }
+      errorMsg.textContent = '';
+      if (res.type === 'rows') {
+        renderRows(res.rows);
+      } else {
+        resultsDiv.innerHTML = `<p class=success>Affected rows: ${res.affectedRows}</p>`;
+      }
+      await refreshHistory();
+    }
+
+    btnExecute.addEventListener('click', async () => {
+      await runSql(sqlPreview.value.trim());
+    });
+
+    // Example buttons: convert NL and run automatically
+    document.querySelectorAll('.ex-nl').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        nlText.value = btn.dataset.nl || '';
+        const res = await ipcRenderer.invoke('nlqms:convert', nlText.value);
+        sqlPreview.value = res.sql || '(no SQL)';
+        nlHint.textContent = res.explanation || '';
+        errorMsg.textContent = '';
+        validationMsg.textContent = '';
+        await runSql(sqlPreview.value.trim());
+      });
+    });
+
+    btnUndo.addEventListener('click', async () => {
+      const res = await ipcRenderer.invoke('nlqms:undoLast');
+      if (!res.ok) { errorMsg.textContent = res.error || 'Undo failed.'; return; }
+      errorMsg.textContent = '';
+      refreshHistory();
+    });
+
+    btnExport.addEventListener('click', async () => {
+      const sql = sqlPreview.value || '';
+      const res = await ipcRenderer.invoke('nlqms:export', { type: 'single', sql });
+      if (!res.ok) errorMsg.textContent = res.error || 'Export failed.';
+    });
+
+    btnExportHistory.addEventListener('click', async () => {
+      const res = await ipcRenderer.invoke('nlqms:export', { type: 'history' });
+      if (!res.ok) errorMsg.textContent = res.error || 'Export failed.';
+    });
+
+    btnDeleteSelected.addEventListener('click', async () => {
+      const ids = Array.from(historyBody.querySelectorAll('input[type="checkbox"]:checked'))
+        .map(cb => cb.dataset.id)
+        .filter(Boolean);
+      const res = await ipcRenderer.invoke('nlqms:deleteHistorySelection', ids);
+      if (!res.ok) { errorMsg.textContent = res.error || 'Delete selected failed.'; return; }
+      errorMsg.textContent = '';
+      await refreshHistory();
+    });
+
+    btnDeleteAll.addEventListener('click', async () => {
+      const confirmDelete = confirm('Delete all history for the current database?');
+      if (!confirmDelete) return;
+      const res = await ipcRenderer.invoke('nlqms:clearHistoryAll');
+      if (!res.ok) { errorMsg.textContent = res.error || 'Delete all failed.'; return; }
+      errorMsg.textContent = '';
+      await refreshHistory();
+    });
+
+    function renderRows(rows) {
+      if (!rows || !rows.length) { resultsDiv.innerHTML = '<p>No rows.</p>'; return; }
+      const cols = Object.keys(rows[0]);
+      let html = '<table><thead><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+      rows.forEach(r => {
+        html += '<tr>' + cols.map(c => `<td>${String(r[c])}</td>`).join('') + '</tr>';
+      });
+      html += '</tbody></table>';
+      resultsDiv.innerHTML = html;
+    }
+
+    // Voice input via Web Speech API (Chrome-based). MVP only
+    let recognizer = null; let listening = false;
+    function getRecognizer() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return null;
+      const r = new SR();
+      r.lang = 'en-US';
+      r.interimResults = false;
+      r.maxAlternatives = 1;
+      r.continuous = false;
+      r.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        nlText.value = transcript;
+        btnConvert.click();
+      };
+      r.onerror = (e) => { console.log('Speech error', e); };
+      r.onend = () => { listening = false; btnVoice.textContent = 'Start Voice'; };
+      return r;
+    }
+
+    btnVoice.addEventListener('click', () => {
+      if (!recognizer) recognizer = getRecognizer();
+      if (!recognizer) { errorMsg.textContent = 'Web Speech API not supported in this environment.'; return; }
+      if (listening) { recognizer.stop(); listening = false; btnVoice.textContent = 'Start Voice'; }
+      else { recognizer.start(); listening = true; btnVoice.textContent = 'Stop Voice'; }
+    });
+
+    // Connection handlers
+    async function loadConfigIntoForm() {
+      const cfg = await ipcRenderer.invoke('nlqms:getDbConfig');
+      dbHost.value = cfg.host || '';
+      dbPort.value = String(cfg.port || '');
+      dbUser.value = cfg.user || '';
+      dbPassword.value = cfg.password || '';
+      dbName.value = cfg.database || '';
+    }
+
+    btnSaveConn.addEventListener('click', async () => {
+      const cfg = { host: dbHost.value, port: Number(dbPort.value), user: dbUser.value, password: dbPassword.value, database: dbName.value };
+      const res = await ipcRenderer.invoke('nlqms:setDbConfig', cfg);
+      connMsg.textContent = res.ok ? 'Saved connection settings.' : (res.error || 'Failed to save.');
+    });
+    btnTestConn.addEventListener('click', async () => {
+      const cfg = { host: dbHost.value, port: Number(dbPort.value), user: dbUser.value, password: dbPassword.value, database: dbName.value };
+      const res = await ipcRenderer.invoke('nlqms:testDbConnection', cfg);
+      connMsg.textContent = res.ok ? 'Connection OK.' : `Connection failed: ${res.message}`;
+    });
+    btnLoadDbs.addEventListener('click', async () => {
+      const res = await ipcRenderer.invoke('nlqms:listDatabases');
+      if (!res.ok) { connMsg.textContent = res.error || 'Failed to list databases.'; return; }
+      dbList.innerHTML = '';
+      res.databases.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        dbList.appendChild(opt);
+      });
+      connMsg.textContent = `Loaded ${res.databases.length} databases.`;
+    });
+    btnUseDb.addEventListener('click', async () => {
+      const name = dbList.value || dbName.value || '';
+      if (!name) { connMsg.textContent = 'No database selected.'; return; }
+      const res = await ipcRenderer.invoke('nlqms:setActiveDatabase', name);
+      connMsg.textContent = res.ok ? `Using database: ${name}` : (res.error || 'Failed to select database.');
+      await refreshHistory();
+    });
+
+    function showWelcomeIfFirstRun() {
+      if (!qpWelcome) return;
+      try {
+        const seen = localStorage.getItem('qp_welcome_seen');
+        if (!seen) {
+          qpWelcome.style.display = 'flex';
+        }
+      } catch (e) {}
+    }
+
+    if (qpWelcomeClose) {
+      qpWelcomeClose.addEventListener('click', () => {
+        if (qpWelcome) {
+          qpWelcome.style.display = 'none';
+        }
+        try {
+          localStorage.setItem('qp_welcome_seen', '1');
+        } catch (e) {}
+      });
+    }
+
+    loadConfigIntoForm();
+    refreshHistory();
+    showWelcomeIfFirstRun();
+  </script>
+</body>
+</html>
