@@ -14,6 +14,7 @@ QueryPilot is a local, AI-powered desktop assistant that allows you to interact 
 ## Installation
 
 To install QueryPilot, please download the latest installer from our [GitHub Releases page](https://github.com/VikasChhetry/QueryPilot/releases).
+
 1.Download Ollama from: https://ollama.com/download
     Install Ollama for Windows
     Open Command Prompt / PowerShell
